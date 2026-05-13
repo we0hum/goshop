@@ -3,6 +3,7 @@ package main
 import (
 	"goshop/internal/cache"
 	"goshop/internal/db"
+	"goshop/internal/events"
 	"goshop/internal/handlers"
 	"goshop/internal/services"
 	"log"
@@ -18,12 +19,13 @@ func main() {
 	}
 
 	redisCache := cache.NewProductCache("localhost:6379")
+	publisher := events.NewPublisher("localhost:9092", "orders")
 
 	productRepo := db.NewProductRepo(dbConn)
 	orderRepo := db.NewOrderRepo(dbConn)
 
 	productService := services.NewProductService(productRepo, redisCache)
-	orderService := services.NewOrderService(orderRepo)
+	orderService := services.NewOrderService(orderRepo, publisher)
 
 	productHandler := handlers.NewProductHandler(productService)
 	orderHandler := handlers.NewOrderHandler(orderService)

@@ -15,19 +15,17 @@ type ProductCache struct {
 	rdb *redis.Client
 }
 
-// Подключение к Redis
 func NewProductCache(addr string) *ProductCache {
 	rdb := redis.NewClient(&redis.Options{
-		Addr: addr, // например, localhost:6379
+		Addr: addr,
 	})
 	return &ProductCache{rdb: rdb}
 }
 
-// Получить товар из кэша
 func (c *ProductCache) Get(ctx context.Context, id int) (*models.Product, error) {
 	val, err := c.rdb.Get(ctx, key(id)).Result()
 	if err == redis.Nil {
-		return nil, nil // нет в кэше
+		return nil, nil
 	}
 	if err != nil {
 		return nil, err
@@ -40,13 +38,11 @@ func (c *ProductCache) Get(ctx context.Context, id int) (*models.Product, error)
 	return &p, nil
 }
 
-// Сохранить товар в кэш
 func (c *ProductCache) Set(ctx context.Context, p *models.Product) error {
 	data, _ := json.Marshal(p)
 	return c.rdb.Set(ctx, key(p.ID), data, 5*time.Minute).Err()
 }
 
-// Формирование ключа
 func key(id int) string {
 	return "product:" + strconv.Itoa(id)
 }
