@@ -16,18 +16,13 @@ func NewOrderService(repo *db.OrderRepo, publisher *events.Publisher) *OrderServ
 	return &OrderService{repo: repo, publisher: publisher}
 }
 
-func (r *OrderRepo) Create(ctx context.Context, o *models.Order) (models.Order, error) {
-	var ord models.Order
-
-	query := `
- INSERT INTO orders (product_id, quantity, total)
- VALUES ($1, $2, $3)
- RETURNING id, product_id, quantity, total;
- `
-
-	if err := r.db.GetContext(ctx, &ord, query,
-		o.ProductID, o.Quantity, o.Total); err != nil {
+func (s *OrderService) CreateOrder(ctx context.Context, o *models.Order) (models.Order, error) {
+	order, err := s.repo.Create(ctx, o)
+	if err != nil {
 		return models.Order{}, err
 	}
-	return ord, nil
+
+	_ = s.publisher.PublishOrderCreated(ctx, order.ID)
+
+	return order, nil
 }

@@ -16,7 +16,6 @@ func NewOrderHandler(s *services.OrderService) *OrderHandler {
 	return &OrderHandler{service: s}
 }
 
-// Обрабатывает POST /orders
 func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	var order models.Order
 	if err := json.NewDecoder(r.Body).Decode(&order); err != nil {
@@ -24,10 +23,13 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.CreateOrder(r.Context(), &order); err != nil {
+	createdOrder, err := h.service.CreateOrder(r.Context(), &order)
+	if err != nil {
 		http.Error(w, "failed to create order", http.StatusInternalServerError)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(createdOrder)
 }

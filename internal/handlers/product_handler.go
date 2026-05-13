@@ -17,9 +17,7 @@ func NewProductHandler(s *services.ProductService) *ProductHandler {
 	return &ProductHandler{service: s}
 }
 
-// Обрабатывает GET /products/{id}
 func (h *ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
-	// Пример: /products/1
 	parts := strings.Split(r.URL.Path, "/")
 	if len(parts) < 3 {
 		http.Error(w, "missing product id", http.StatusBadRequest)
